@@ -29,20 +29,25 @@ class HumanPlayer:
         while True:
             roll = die.roll()
             print(f"\n{self.name} rolled: {roll}")
-            if roll == 1:
-                print("Rolled a 1! No points.")
-                self.reset_turn()
-                return False
-            self.turn_score += roll
-            print(f"Turn total: {self.turn_score}")
-            print(f"Total score: {self.score}")
+        
+        if roll == 1:
+            print("Rolling a 1 gives you no points.")
+            self.reset_turn()
+            return False
+        
+        self.turn_score += roll
+        print(f"Turn total: {self.turn_score}")
+        print(f"Total score: {self.score}")
+        
+        
+        while True:
             decision = input("Roll (r) or Hold (h)? ").strip().lower()
             if decision == 'h':
                 self.hold()
-                print(f"{self.name} holds! Score: {self.score}")
+                print(f"{self.name} hold Score: {self.score}")
                 return True
             elif decision == 'r':
-                continue
+                break   
             else:
                 print("Invalid — enter 'r' or 'h'")
 
