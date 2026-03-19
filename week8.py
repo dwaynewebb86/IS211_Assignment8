@@ -26,7 +26,9 @@ class HumanPlayer:
         self.turn_score = 0
 
     def take_turn(self, die):
+        print("DEBUG: take_turn started")
         while True:
+            print("DEBUG: about to roll")
             roll = die.roll()
             print(f"\n{self.name} rolled: {roll}")
         
@@ -97,6 +99,7 @@ class Game:
 
     def play_turn(self):
         player = self.current_player()
+        print(f"DEBUG: {player.name}'s turn")
         player.reset_turn()
         player.take_turn(self.die)
         self.switch_player()
