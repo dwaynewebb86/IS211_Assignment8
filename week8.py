@@ -1,4 +1,6 @@
 import random
+import argparse
+import time
 random.seed(0)
 
 
@@ -23,14 +25,60 @@ class HumanPlayer:
     def reset_turn(self):
         self.turn_score = 0
 
-Class ComputerPlayer(HumanPlayer):
+    def take_turn(self, die):
+        while True:
+            roll = die.roll()
+            print(f"\n{self.name} rolled: {roll}")
+            if roll == 1:
+                print("Rolled a 1! No points.")
+                self.reset_turn()
+                return False
+            self.turn_score += roll
+            print(f"Turn total: {self.turn_score}")
+            print(f"Total score: {self.score}")
+            decision = input("Roll (r) or Hold (h)? ").strip().lower()
+            if decision == 'h':
+                self.hold()
+                print(f"{self.name} holds! Score: {self.score}")
+                return True
+            elif decision == 'r':
+                continue
+            else:
+                print("Invalid — enter 'r' or 'h'")
+
+
+class ComputerPlayer(HumanPlayer):
     def __init__(self, name="Computer"):
         super().__init__(name)
 
+    def take_turn(self, die):
+        hold_at = min(25, 100 - self.score)
+        while self.turn_score < hold_at:
+            roll = die.roll()
+            print(f"\n{self.name} rolled: {roll}")
+            if roll == 1:
+                print(f"{self.name} rolled a 1! No points.")
+                self.reset_turn()
+                return False
+            self.turn_score += roll
+            print(f"{self.name} turn total: {self.turn_score}")
+        print(f"{self.name} holds at {self.turn_score}")
+        self.hold()
+        return True
+
+
+class PlayerFactory:
+    def create(self, player_type, name):
+        if player_type == "human":
+            return HumanPlayer(name)
+        elif player_type == "computer":
+            return ComputerPlayer(name)
+
+
 class Game:
-    def __init__(self):
+    def __init__(self, players):
         self.die = Die()
-        self.players = [Player("Player 1"), Player("Player 2")]
+        self.players = players
         self.current_player_index = 0
 
     def current_player(self):
@@ -45,32 +93,8 @@ class Game:
     def play_turn(self):
         player = self.current_player()
         player.reset_turn()
-
-        while True:
-            roll = self.die.roll()
-            print(f"\n{player.name} rolled: {roll}")
-            print(f"Turn total: {player.turn_score}")
-            print(f"Total score: {player.score}")
-
-            if roll == 1:
-                print("Rolled a 1! No points this turn.")
-                player.reset_turn()
-                self.switch_player()
-                break
-
-            player.turn_score += roll
-
-            decision = input("Roll (r) or Hold (h)? ").strip().lower()
-
-            if decision == 'h':
-                player.hold()
-                print(f"{player.name} holds! Score: {player.score}")
-                self.switch_player()
-                break
-            elif decision == 'r':
-                continue
-            else:
-                print("Invalid — enter 'r' or 'h'")
+        player.take_turn(self.die)
+        self.switch_player()
 
     def game_start(self):
         print("Welcome to Pig!")
@@ -81,6 +105,48 @@ class Game:
         print(f"\nGame over! {winner.name} wins with {winner.score} points!")
 
 
+class TimedGameProxy:
+    def __init__(self, game):
+        self.game = game
+        self.start_time = time.monotonic()
+
+    def time_up(self):
+        return time.monotonic() - self.start_time >= 60
+
+    def game_over(self):
+        return self.game.game_over() or self.time_up()
+
+    def play_turn(self):
+        self.game.play_turn()
+
+    def game_start(self):
+        print("Welcome to Pig! (Timed - 60 seconds)")
+        print("First to 100 points wins or most points after 60 seconds!")
+        while not self.game_over():
+            self.play_turn()
+            if self.time_up():
+                print("\nTime is up!")
+                break
+        winner = max(self.game.players, key=lambda p: p.score)
+        print(f"\nGame over! {winner.name} wins with {winner.score} points!")
+
+
 if __name__ == "__main__":
-    game = Game()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--player1', choices=['human', 'computer'], default='human')
+    parser.add_argument('--player2', choices=['human', 'computer'], default='human')
+    parser.add_argument('--timed', action='store_true')
+    args = parser.parse_args()
+
+    factory = PlayerFactory()
+    players = [
+        factory.create(args.player1, "Player 1"),
+        factory.create(args.player2, "Player 2")
+    ]
+
+    game = Game(players)
+
+    if args.timed:
+        game = TimedGameProxy(game)
+
     game.game_start()
