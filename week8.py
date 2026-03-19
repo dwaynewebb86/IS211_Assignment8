@@ -26,32 +26,29 @@ class HumanPlayer:
         self.turn_score = 0
 
     def take_turn(self, die):
-        print("DEBUG: take_turn started")
         while True:
-            print("DEBUG: about to roll")
             roll = die.roll()
             print(f"\n{self.name} rolled: {roll}")
-        
-        if roll == 1:
-            print("Rolling a 1 gives you no points.")
-            self.reset_turn()
-            return False
-        
-        self.turn_score += roll
-        print(f"Turn total: {self.turn_score}")
-        print(f"Total score: {self.score}")
-        
-        
-        while True:
-            decision = input("Roll (r) or Hold (h)? ").strip().lower()
-            if decision == 'h':
-                self.hold()
-                print(f"{self.name} hold Score: {self.score}")
-                return True
-            elif decision == 'r':
-                break   
-            else:
-                print("Invalid — enter 'r' or 'h'")
+
+            if roll == 1:
+                print("Rolling a 1 gives you no points.")
+                self.reset_turn()
+                return False
+
+            self.turn_score += roll
+            print(f"Turn total: {self.turn_score}")
+            print(f"Total score: {self.score}")
+
+            while True:
+                decision = input("Roll (r) or Hold (h)? ").strip().lower()
+                if decision == 'h':
+                    self.hold()
+                    print(f"{self.name} holds! Score: {self.score}")
+                    return True
+                elif decision == 'r':
+                    break
+                else:
+                    print("Invalid — enter 'r' or 'h'")
 
 
 class ComputerPlayer(HumanPlayer):
@@ -64,7 +61,7 @@ class ComputerPlayer(HumanPlayer):
             roll = die.roll()
             print(f"\n{self.name} rolled: {roll}")
             if roll == 1:
-                print(f"{self.name} rolled a 1! No points.")
+                print(f"{self.name} rolled a 1 No points.")
                 self.reset_turn()
                 return False
             self.turn_score += roll
@@ -99,7 +96,6 @@ class Game:
 
     def play_turn(self):
         player = self.current_player()
-        print(f"DEBUG: {player.name}'s turn")
         player.reset_turn()
         player.take_turn(self.die)
         self.switch_player()
@@ -129,11 +125,11 @@ class TimedGameProxy:
 
     def game_start(self):
         print("Welcome to Pig! (Timed - 60 seconds)")
-        print("First to 100 points wins or most points after 60 seconds!")
+        print("First to 100 points wins or most points after 60 seconds")
         while not self.game_over():
             self.play_turn()
             if self.time_up():
-                print("\nTime is up!")
+                print("\nTime is up Ending game.")
                 break
         winner = max(self.game.players, key=lambda p: p.score)
         print(f"\nGame over! {winner.name} wins with {winner.score} points!")
